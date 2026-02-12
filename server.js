@@ -175,7 +175,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const configDB = require("./config/configdb");
+const configDB = require("./config/configDb");
 const http = require("http");
 const { initSocket } = require("./config/socket");
 const testSocketRoutes = require("./routes/testSocketRoutes");
