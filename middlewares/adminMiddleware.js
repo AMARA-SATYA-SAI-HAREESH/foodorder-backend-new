@@ -3,6 +3,8 @@ const adminMiddleware = async (req, res, next) => {
   try {
     const id = req.userId;
     // console.log("Admin middleware userId:", id);
+    // Add this to adminMiddleware.js to debug:
+
     if (!id) {
       return res.status(401).send({
         status: false,
@@ -11,6 +13,9 @@ const adminMiddleware = async (req, res, next) => {
     }
 
     const user = await userModel.findById(id);
+    console.log("Admin middleware - User ID:", id);
+    console.log("Admin middleware - User:", user);
+    console.log("Admin middleware - User Type:", user?.userType);
     if (!user) {
       return res.status(401).send({
         status: false,
@@ -23,6 +28,7 @@ const adminMiddleware = async (req, res, next) => {
         message: "user not admin",
       });
     }
+
     next();
   } catch (err) {
     console.log("Error in admin middleware", err);

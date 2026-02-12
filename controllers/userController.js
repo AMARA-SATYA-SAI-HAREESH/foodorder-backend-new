@@ -134,35 +134,6 @@ const newPassword = async (req, res) => {
   }
 };
 
-// const deleteUser = async (req, res) => {
-//   try {
-//     const id = req.query.id;
-//     if (id !== req.userId) {
-//       return res.send({
-//         status: false,
-//         message: "invalid data",
-//       });
-//     }
-//     const user = await userModel.findById(id);
-//     if (!user) {
-//       return res.status(404).send({
-//         status: false,
-//         message: "user not found",
-//       });
-//     }
-//     await userModel.findByIdAndDelete(id);
-//     res.status(200).send({
-//       status: true,
-//       message: "user deleted successfully",
-//     });
-//   } catch (error) {
-//     console.log("Error in delete user API", error);
-//     res.status(500).send({
-//       status: false,
-//       message: "Error in deleting user",
-//     });
-//   }
-// };
 const deleteUser = async (req, res) => {
   try {
     console.log("req.userId:", req.userId);

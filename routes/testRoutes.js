@@ -1,7 +1,8 @@
+// routes/testRoutes.js
 const express = require("express");
+const { createTestOrder } = require("../controllers/testController");
 const router = express.Router();
-const { testApiController } = require("../controllers/TestController");
 
-router.get("/", testApiController);
+router.post("/create-test-order", createTestOrder);
 
 module.exports = router;

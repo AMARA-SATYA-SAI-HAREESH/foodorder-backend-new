@@ -130,6 +130,7 @@ const deleteRestaurant = async (req, res) => {
 const getAllRestaurants = async (req, res) => {
   try {
     const restaurants = await restaurantModel.find({});
+    console.log("Found restaurants:", restaurants.length); // ← ADD
     if (!restaurants) {
       return res.status(404).send({
         status: false,
