@@ -103,16 +103,14 @@ exports.getAvailableOrders = async (req, res) => {
     });
 
     if (!driver.isOnline || !driver.isAvailable) {
-      console.log("❌ Driver NOT online/available");
-      return res.status(400).json({
-        success: false,
-        message: "Driver must be online and available",
-        driverStatus: {
-          isOnline: driver.isOnline,
-          isAvailable: driver.isAvailable,
-        },
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        orders: [],
+        message: "Driver is offline or unavailable",
       });
     }
+
     console.log("🔍 Querying orders with:");
     console.log("   - status: READY_FOR_PICKUP");
     console.log("   - driverId: null");
