@@ -212,6 +212,7 @@ app.set("io", io);
 const corsOptions = {
   origin: [
     "http://localhost:3000",
+    "https://foodorder-liart.vercel.app", // Hardcode for now
     process.env.CORS_ORIGIN || "https://foodorder-frontend.vercel.app",
   ],
   credentials: true,
@@ -221,7 +222,12 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(cors(corsOptions)); // ✅ THIS IS ENOUGH
+app.use((req, res, next) => {
+  console.log(
+    `📡 ${req.method} ${req.url} - Origin: ${req.headers.origin || "No origin"}`,
+  );
+  next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
