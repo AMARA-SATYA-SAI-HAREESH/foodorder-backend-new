@@ -679,7 +679,7 @@ exports.getAllDrivers = async (req, res) => {
 
     // Build filter
     const filter = {};
-
+    filter.isActive = { $ne: false };
     if (isOnline !== undefined) filter.isOnline = isOnline === "true";
     if (verificationStatus) filter.verificationStatus = verificationStatus;
 
@@ -720,14 +720,16 @@ exports.getAllDrivers = async (req, res) => {
 };
 
 // Delete Driver Account (ADMIN ONLY)
+// Delete Driver Account (ADMIN ONLY)
 exports.deleteDriverAccount = async (req, res) => {
   try {
-    // const { driverId } = req.params;
     const { id: driverId } = req.query;
-
     const { deleteType = "soft", reason } = req.body;
 
-    const driver = await Driver.findById(driverId).populate("user");
+    console.log("🗑️ Deleting driver:", driverId, "Type:", deleteType);
+
+    // Find driver WITHOUT populate first to check if exists
+    const driver = await Driver.findById(driverId);
 
     if (!driver) {
       return res.status(404).json({
@@ -736,9 +738,16 @@ exports.deleteDriverAccount = async (req, res) => {
       });
     }
 
+    console.log("📋 Found driver:", driver._id, "User ID:", driver.user);
+
     if (deleteType === "hard") {
-      // Hard delete
-      await User.findByIdAndDelete(driver.user._id);
+      // Hard delete - delete from BOTH collections if user exists
+      if (driver.user) {
+        console.log("🗑️ Deleting user:", driver.user);
+        await User.findByIdAndDelete(driver.user);
+      }
+
+      console.log("🗑️ Deleting driver:", driverId);
       await Driver.findByIdAndDelete(driverId);
 
       res.json({
@@ -746,12 +755,14 @@ exports.deleteDriverAccount = async (req, res) => {
         message: "Driver account permanently deleted",
       });
     } else {
-      // Soft delete
-      await User.findByIdAndUpdate(driver.user._id, {
-        isActive: false,
-        deletedAt: new Date(),
-        deletionReason: reason,
-      });
+      // Soft delete - update both collections if user exists
+      if (driver.user) {
+        await User.findByIdAndUpdate(driver.user, {
+          isActive: false,
+          deletedAt: new Date(),
+          deletionReason: reason,
+        });
+      }
 
       await Driver.findByIdAndUpdate(driverId, {
         isOnline: false,
@@ -767,13 +778,13 @@ exports.deleteDriverAccount = async (req, res) => {
       });
     }
   } catch (error) {
+    console.error("❌ Error deleting driver:", error);
     res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 // Self-delete route - PERMANENT DELETION (DRIVER ONLY)
 exports.deleteMyAccount = async (req, res) => {
   try {

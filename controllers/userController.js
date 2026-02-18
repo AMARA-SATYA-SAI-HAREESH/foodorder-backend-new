@@ -12,11 +12,18 @@ const register = async (req, res) => {
       answer,
       userType,
       profile,
+      otpVerified,
     } = req.body;
     if (!userName || !email || !password || !address || !phone || !answer) {
       return res.status(400).send({
         status: false,
         message: "Invalid Data",
+      });
+    }
+    if (!otpVerified) {
+      return res.status(400).json({
+        status: false,
+        message: "Email not verified. Please verify OTP first.",
       });
     }
     const existingUser = await userModel.findOne({ email: email });
@@ -45,7 +52,7 @@ const register = async (req, res) => {
         userType: newuser.userType,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
     res.status(200).send({
       status: true,
@@ -59,13 +66,14 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, captchaToken } = req.body;
     if (!email || !password) {
       return res.status(400).send({
         status: false,
         message: "Invalid Data",
       });
     }
+
     const existingUser = await userModel.findOne({ email: email });
     if (!existingUser) {
       return res.status(400).send({
@@ -73,6 +81,21 @@ const login = async (req, res) => {
         message: "Account not exists",
       });
     }
+
+    // ✅ ADD THIS VALIDATION - Block vendors and drivers
+    if (
+      existingUser.userType === "vendor" ||
+      existingUser.userType === "driver"
+    ) {
+      return res.status(403).send({
+        status: false,
+        message:
+          existingUser.userType === "vendor"
+            ? "Please use vendor login page"
+            : "Please use driver login page",
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, existingUser.password);
     if (!isMatch) {
       return res.status(400).send({
@@ -80,21 +103,27 @@ const login = async (req, res) => {
         message: "Invalid password",
       });
     }
+
     existingUser.password = undefined;
     var token = jwt.sign(
       { id: existingUser._id, userType: existingUser.userType },
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
-      }
+      },
     );
+
     res.status(200).send({
       status: true,
       token,
       user: existingUser,
     });
   } catch (error) {
-    console.log("Error in creating user API", error);
+    console.log("Error in login API", error);
+    res.status(500).send({
+      status: false,
+      message: "Internal server error",
+    });
   }
 };
 

@@ -179,6 +179,10 @@ const configDB = require("./config/configDb");
 const http = require("http");
 const { initSocket } = require("./config/socket");
 const testSocketRoutes = require("./routes/testSocketRoutes");
+const session = require("express-session");
+const { RedisStore } = require("connect-redis");
+const redisClient = require("./utils/redisClient");
+const uploadRoutes = require("./routes/uploadRoutes");
 dotenv.config();
 
 // all vendor imports
@@ -259,7 +263,7 @@ app.use("/api/otp", otpRoutes);
 // const AutoPayoutController = require("./controllers/autoPayoutController");
 // ========== RAZORPAY ROUTES ==========
 app.use("/api", razorpayRoutes);
-
+app.use("/api/upload", uploadRoutes);
 // ========== DRIVER ROUTES ==========
 // PUBLIC DRIVER ROUTES (NO AUTH)
 app.use("/api/driver/auth", driverAuthRoutes); // Contains /register, /login
@@ -306,6 +310,26 @@ app.get("/api/driver-test", (req, res) => {
     },
   });
 });
+// Session middleware
+app.use(
+  session({
+    store: new RedisStore({
+      client: redisClient,
+      prefix: "session:",
+    }),
+    secret: process.env.SESSION_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  }),
+);
+
+console.log("✅ Redis session store initialized");
+console.log("✅ Redis session store initialized");
 if (process.env.NODE_ENV !== "production") {
   console.log("Auto-payout system initialized");
 
