@@ -15,6 +15,9 @@ const vendorRegister = async (req, res) => {
       phone,
       answer,
       restaurantName,
+      imageUrl, // ✅ ADD THIS
+      latitude, // ✅ ADD THIS
+      longitude, // ✅ ADD THIS
     } = req.body;
 
     // Validation
@@ -25,7 +28,10 @@ const vendorRegister = async (req, res) => {
       !address ||
       !phone ||
       !answer ||
-      !restaurantName
+      !restaurantName ||
+      !imageUrl ||
+      !latitude ||
+      !longitude
     ) {
       return res.status(400).send({
         status: false,
@@ -56,18 +62,25 @@ const vendorRegister = async (req, res) => {
       userType: "vendor",
     });
 
-    // Create restaurant for vendor
     const restaurant = await restaurantModel.create({
       title: restaurantName,
       vendorId: vendor._id,
-      isVerified: false, // Admin needs to verify
+      imageUrl: imageUrl, // ✅ ADD THIS
+      coords: {
+        // ✅ ADD THIS WHOLE BLOCK
+        address: address,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        title: restaurantName,
+      },
+      isVerified: false,
     });
 
     // Generate JWT token
     const token = jwt.sign(
       { id: vendor._id, userType: vendor.userType },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     // Remove password from response
@@ -127,7 +140,7 @@ const vendorLogin = async (req, res) => {
     const token = jwt.sign(
       { id: vendor._id, userType: vendor.userType },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     // Remove password from response

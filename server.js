@@ -216,8 +216,8 @@ app.set("io", io);
 const corsOptions = {
   origin: [
     "http://localhost:3000",
-    "https://foodorder-liart.vercel.app", // Hardcode for now
-    process.env.CORS_ORIGIN || "https://foodorder-frontend.vercel.app",
+    "https://foodorder-frontend-indol.vercel.app", // Hardcode for now
+    process.env.CORS_ORIGIN || "https://foodorder-frontend-indol.vercel.app",
   ],
   credentials: true,
   optionsSuccessStatus: 200,
